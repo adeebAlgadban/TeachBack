@@ -12,7 +12,23 @@ export ANTHROPIC_API_KEY=sk-ant-...   # or: ant auth login
 
 Requires Node.js 20+.
 
-## Usage
+## Web interface
+
+```bash
+npm run ui          # then open http://localhost:3000
+```
+
+![API Describer UI](docs/ui.png)
+
+- Enter a URL or drag in a schema file, optionally say who the description is for, and click **Describe API**. The description streams in as Claude writes it.
+- **Preview schema** downloads and condenses the schema without calling Claude. It works without an API key.
+- **Authentication & options** holds the bearer token, extra headers, schema type, model, and effort.
+- The tabs show the rendered description, the condensed schema exactly as Claude received it, and an activity log. You can copy the Markdown or download it, along with the raw schema.
+- Recent descriptions are kept in your browser's local storage.
+
+The server listens on `127.0.0.1` only, because it fetches whatever URL it's given. To expose it on your network, set `HOST=0.0.0.0`; set `PORT` to change the port. Generated descriptions are untrusted text, since they're derived from someone else's schema, so the page shows any HTML in them as text, drops non-http links, and serves a strict Content-Security-Policy.
+
+## Command line
 
 ```bash
 # A direct link to an OpenAPI / Swagger spec
@@ -68,7 +84,7 @@ To support a new kind of application, add a module to `src/connectors/` that exp
 npm test
 ```
 
-The tests run every connector against a local mock server, so they need no network access or API key.
+The tests run every connector and the web server against local mocks, so they need no network access or API key.
 
 ## Behind a proxy
 

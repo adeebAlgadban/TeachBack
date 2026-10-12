@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "node bin/api-describer.js",
+    "ui": "node src/server.js",
     "test": "node --test"
   },
   "engines": {
@@ -16,6 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
+    "marked": "^18.1.1",
     "yaml": "^2.9.1"
   }
 }

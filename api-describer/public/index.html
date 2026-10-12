@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API Describer</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cpath d=%22M4 6h16M4 12h10M4 18h7%22 stroke=%22%234f46e5%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 fill=%22none%22/%3E%3Ccircle cx=%2218.5%22 cy=%2216.5%22 r=%223.5%22 fill=%22none%22 stroke=%22%234f46e5%22 stroke-width=%222%22/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/><circle cx="18.5" cy="16.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+      <span>API Describer</span>
+    </div>
+    <p class="tagline">Connect to any API, read its schema, and get a plain-English explanation of what it does.</p>
+  </header>
+
+  <main class="layout">
+    <aside class="panel" aria-label="Source">
+      <form id="form" novalidate>
+        <div class="segmented" role="tablist" aria-label="Source type">
+          <button type="button" role="tab" class="seg active" data-mode="url" aria-selected="true">URL</button>
+          <button type="button" role="tab" class="seg" data-mode="file" aria-selected="false">Upload file</button>
+        </div>
+
+        <div class="field" data-for="url">
+          <label for="target">API or app URL</label>
+          <input id="target" name="target" type="text" placeholder="https://api.example.com" autocomplete="url" spellcheck="false">
+          <p class="hint">A spec link, a GraphQL endpoint, an OData service, or just the base URL. Common spec locations are probed automatically.</p>
+        </div>
+
+        <div class="field" data-for="file" hidden>
+          <label for="file">Schema file</label>
+          <label class="dropzone" id="dropzone">
+            <input id="file" type="file" accept=".json,.yaml,.yml,.graphql,.gql,.xml,.txt,.html">
+            <span id="file-label">Drop a file here or <u>browse</u></span>
+            <small>OpenAPI / Swagger (JSON, YAML), GraphQL SDL, OData $metadata</small>
+          </label>
+        </div>
+
+        <div class="field">
+          <label for="audience">Write it for <span class="optional">optional</span></label>
+          <input id="audience" type="text" placeholder="e.g. non-technical managers, new developers">
+        </div>
+
+        <details class="advanced">
+          <summary>Authentication &amp; options</summary>
+          <div class="field">
+            <label for="bearer">Bearer token</label>
+            <input id="bearer" type="password" autocomplete="off" placeholder="Sent as Authorization: Bearer …">
+          </div>
+          <div class="field">
+            <label for="headers">Extra headers</label>
+            <textarea id="headers" rows="2" spellcheck="false" placeholder="X-API-Key: abc123&#10;One per line"></textarea>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="type">Schema type</label>
+              <select id="type"></select>
+            </div>
+            <div class="field">
+              <label for="effort">Effort</label>
+              <select id="effort"></select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="model">Model</label>
+            <input id="model" type="text" spellcheck="false">
+          </div>
+        </details>
+
+        <div class="actions">
+          <button type="submit" class="btn primary" id="describe-btn">Describe API</button>
+          <button type="button" class="btn" id="preview-btn" title="Download and condense the schema without calling Claude">Preview schema</button>
+        </div>
+        <button type="button" class="btn danger wide" id="cancel-btn" hidden>Cancel</button>
+        <p class="notice" id="cred-notice" hidden>No Anthropic credentials were found when the server started. “Preview schema” still works, but describing needs <code>ANTHROPIC_API_KEY</code>.</p>
+      </form>
+
+      <section class="history" aria-labelledby="history-title">
+        <div class="history-head">
+          <h2 id="history-title">Recent</h2>
+          <button type="button" class="link" id="clear-history" hidden>Clear</button>
+        </div>
+        <ul id="history-list"></ul>
+        <p class="muted small" id="history-empty">Descriptions you generate are kept here, in this browser only.</p>
+      </section>
+    </aside>
+
+    <section class="results" aria-live="polite">
+      <div class="empty" id="empty">
+        <h1>What does this API do?</h1>
+        <p>Paste a URL or upload a schema. API Describer finds the schema, condenses it, and has Claude write an overview covering capabilities, data model, workflows, and authentication.</p>
+        <div class="examples">
+          <p class="muted small">Try one of these:</p>
+          <button type="button" class="chip" data-example="https://petstore3.swagger.io/api/v3/openapi.json">Swagger Petstore <span>OpenAPI</span></button>
+          <button type="button" class="chip" data-example="https://countries.trevorblades.com/graphql">Countries <span>GraphQL</span></button>
+          <button type="button" class="chip" data-example="https://services.odata.org/V4/TripPinServiceRW">TripPin <span>OData</span></button>
+        </div>
+      </div>
+
+      <div class="result" id="result" hidden>
+        <div class="result-head">
+          <div>
+            <div class="meta"><span class="badge" id="kind-badge"></span><span class="status" id="status"></span></div>
+            <h1 id="result-title"></h1>
+            <p class="source" id="result-source"></p>
+          </div>
+          <div class="toolbar">
+            <button type="button" class="btn small" id="copy-btn" disabled>Copy Markdown</button>
+            <button type="button" class="btn small" id="download-md" disabled>Download .md</button>
+            <button type="button" class="btn small" id="download-schema" disabled>Download schema</button>
+          </div>
+        </div>
+
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" class="tab active" data-tab="description" aria-selected="true">Description</button>
+          <button type="button" role="tab" class="tab" data-tab="schema" aria-selected="false">Condensed schema</button>
+          <button type="button" role="tab" class="tab" data-tab="log" aria-selected="false">Activity <span class="count" id="log-count">0</span></button>
+        </div>
+
+        <div class="tab-panel" data-panel="description">
+          <div class="progress" id="progress" hidden><span class="spinner"></span><span id="progress-text">Working…</span></div>
+          <div class="error" id="error" hidden></div>
+          <article class="markdown" id="description"></article>
+          <p class="usage muted small" id="usage"></p>
+        </div>
+        <div class="tab-panel" data-panel="schema" hidden>
+          <p class="muted small">This is exactly the text sent to Claude, after the raw schema was condensed.</p>
+          <pre class="code" id="schema-summary"></pre>
+        </div>
+        <div class="tab-panel" data-panel="log" hidden>
+          <ol class="log" id="log"></ol>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

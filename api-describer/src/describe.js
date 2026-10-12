@@ -22,9 +22,9 @@ Skip a section only if the schema gives nothing to say about it.`;
 
 /**
  * @param {object} schema  result from discover()
- * @param {object} opts    { model, audience, effort, onText }
+ * @param {object} opts    { model, audience, effort, onText, signal }
  */
-export async function describe(schema, { model = DEFAULT_MODEL, audience, effort = "high", onText } = {}) {
+export async function describe(schema, { model = DEFAULT_MODEL, audience, effort = "high", onText, signal } = {}) {
   const client = new Anthropic();
 
   const userContent = buildUserContent(schema, audience);
@@ -39,7 +39,7 @@ export async function describe(schema, { model = DEFAULT_MODEL, audience, effort
     fallbacks: "default",
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userContent }],
-  });
+  }, { signal });
 
   if (onText) stream.on("text", onText);
   const message = await stream.finalMessage();
