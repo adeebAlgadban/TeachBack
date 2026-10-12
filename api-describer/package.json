@@ -1,0 +1,21 @@
+{
+  "name": "api-describer",
+  "version": "0.1.0",
+  "description": "Connect to an API or application, download its schema, and have Claude write a plain-English description of what it does.",
+  "type": "module",
+  "bin": {
+    "api-describer": "bin/api-describer.js"
+  },
+  "scripts": {
+    "start": "node bin/api-describer.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0",
+    "yaml": "^2.9.1"
+  }
+}

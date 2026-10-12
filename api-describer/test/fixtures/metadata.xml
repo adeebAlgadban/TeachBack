@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+  <edmx:DataServices>
+    <Schema Namespace="Trippin" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+      <EntityType Name="Person">
+        <Key><PropertyRef Name="UserName"/></Key>
+        <Property Name="UserName" Type="Edm.String" Nullable="false"/>
+        <Property Name="FirstName" Type="Edm.String"/>
+        <NavigationProperty Name="Trips" Type="Collection(Trippin.Trip)"/>
+      </EntityType>
+      <EntityType Name="Trip">
+        <Key><PropertyRef Name="TripId"/></Key>
+        <Property Name="TripId" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="Budget" Type="Edm.Single"/>
+      </EntityType>
+      <Function Name="GetFavoriteAirline"/>
+      <EntityContainer Name="Container">
+        <EntitySet Name="People" EntityType="Trippin.Person"/>
+      </EntityContainer>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>
